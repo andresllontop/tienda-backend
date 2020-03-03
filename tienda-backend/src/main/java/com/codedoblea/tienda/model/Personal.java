@@ -18,7 +18,7 @@ public class Personal {
     1=DNI
     2=
     */
-    private String documento;
+    private Integer documento;
     private Integer telefono;
     private String email;
     private String direccion;
@@ -31,7 +31,7 @@ public class Personal {
     }
 
     public Personal(Long idpersonal, String nombre, Short tipo_documento, 
-            String documento, Integer telefono, String email, String direccion) {
+            Integer documento, Integer telefono, String email, String direccion) {
         this.idpersonal = idpersonal;
         this.nombre = nombre;
         this.tipo_documento = tipo_documento;
@@ -65,11 +65,11 @@ public class Personal {
         this.tipo_documento = tipo_documento;
     }
 
-    public String getDocumento() {
+    public Integer getDocumento() {
         return documento;
     }
 
-    public void setDocumento(String documento) {
+    public void setDocumento(Integer documento) {
         this.documento = documento;
     }
 

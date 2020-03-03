@@ -7,7 +7,7 @@ package com.codedoblea.tienda.dao;
 
 import com.codedoblea.tienda.utilities.BeanCrud;
 import com.codedoblea.tienda.utilities.BeanPagination;
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 

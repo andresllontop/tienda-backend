@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/tienda-backend">
+<Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" 
+            maxActive="200" maxIdle="200" maxWait="40000"
+            name="jdbc/dbtienda" password="root" 
+            type="javax.sql.DataSource" 
+            url="jdbc:mysql://localhost:3306/db_service_code" username="root">
+    </Resource>
+</Context>

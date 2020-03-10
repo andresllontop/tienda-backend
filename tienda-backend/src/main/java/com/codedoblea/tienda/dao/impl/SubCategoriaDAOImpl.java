@@ -5,9 +5,9 @@
  */
 package com.codedoblea.tienda.dao.impl;
 
-import com.codedoblea.tienda.dao.IPersonalDAO;
+import com.codedoblea.tienda.dao.ISubCategoriaDAO;
 import com.codedoblea.tienda.dao.SQLCloseable;
-import com.codedoblea.tienda.model.Personal;
+import com.codedoblea.tienda.model.SubCategoria;
 import com.codedoblea.tienda.utilities.BeanCrud;
 import com.codedoblea.tienda.utilities.BeanPagination;
 import java.sql.Connection;
@@ -24,13 +24,13 @@ import javax.sql.DataSource;
  *
  * @author andres
  */
-public class PersonalDAOImpl implements IPersonalDAO {
+public class SubCategoriaDAOImpl implements ISubCategoriaDAO {
 
-    private static final Logger LOG = Logger.getLogger(PersonalDAOImpl.class.getName());
+    private static final Logger LOG = Logger.getLogger(SubCategoriaDAOImpl.class.getName());
     private final DataSource pool;
     private BeanCrud beancrud;
 
-    public PersonalDAOImpl(DataSource pool) {
+    public SubCategoriaDAOImpl(DataSource pool) {
         this.pool = pool;
     }
 
@@ -38,13 +38,13 @@ public class PersonalDAOImpl implements IPersonalDAO {
     public BeanPagination getPagination(HashMap<String, Object> parameters, Connection conn)
             throws SQLException {
         BeanPagination beanpagination = new BeanPagination();
-        List<Personal> list = new ArrayList<>();
+        List<SubCategoria> list = new ArrayList<>();
         PreparedStatement pst;
         ResultSet rs;
         try {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sbSQL.append("`personal` WHERE ");
+            sbSQL.append("SELECT COUNT(IDSUBCATEGORIA) AS COUNT FROM ");
+            sbSQL.append("`subcategoria` WHERE ");
             sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setString(1, String.valueOf(parameters.get("FILTER")));
@@ -55,7 +55,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 if (rs.getInt("COUNT") > 0) {
                     sbSQL.setLength(0);
                     sbSQL.append("SELECT * FROM ");
-                    sbSQL.append("`personal`  WHERE ");
+                    sbSQL.append("`subcategoria`  WHERE ");
                     sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
                     sbSQL.append(String.valueOf(parameters.get("SQL_ORDERS")));
                     sbSQL.append(parameters.get("SQL_PAGINATION"));
@@ -64,16 +64,10 @@ public class PersonalDAOImpl implements IPersonalDAO {
                     LOG.info(pst.toString());
                     rs = pst.executeQuery();
                     while (rs.next()) {
-                        Personal personal = new Personal();
-                        personal.setIdpersonal(rs.getLong("IDPERSONAL"));
-                        personal.setNombre(rs.getString("NOMBRE"));
-                        personal.setApellido(rs.getString("APELLIDOS"));
-                        personal.setTipo_documento(rs.getShort("TIPO_DOCUMENTO"));
-                        personal.setDocumento(rs.getInt("DOCUMENTO"));
-                        personal.setTelefono(rs.getInt("TELEFONO"));
-                        personal.setEmail(rs.getString("EMAIL"));
-                        personal.setDireccion(rs.getString("DIRECCION"));
-                        list.add(personal);
+                        SubCategoria subcategoria = new SubCategoria();
+                        subcategoria.setIdsubcategoria(rs.getLong("IDSUBCATEGORIA"));
+                        subcategoria.setNombre(rs.getString("NOMBRE"));
+                        list.add(subcategoria);
                     }
                 }
             }
@@ -98,7 +92,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public BeanCrud add(Personal t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud add(SubCategoria t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
@@ -107,8 +101,8 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sSQL.append("`personal`  WHERE NOMBRE = ?");
+            sSQL.append("SELECT COUNT(IDSUBCATEGORIA) AS COUNT FROM ");
+            sSQL.append("`subcategoria`  WHERE NOMBRE = ?");
             pst = conn.prepareStatement(sSQL.toString());
             pst.setString(1, t.getNombre());
             rs = pst.executeQuery();
@@ -116,18 +110,9 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("INSERT INTO ");
-                    sSQL.append("`personal` (NOMBRE,APELLIDOS,");
-                    sSQL.append("TIPO_DOCUMENTO,DOCUMENTO,");
-                    sSQL.append("TELEFONO,EMAIL,DIRECCION) ");
-                    sSQL.append("VALUES(?,?,?,?,?,?,?) ");
+                    sSQL.append("`subcategoria` (NOMBRE) VALUES(?)");
                     pst = conn.prepareStatement(sSQL.toString());
-                     pst.setString(1, t.getNombre());
-                    pst.setString(2, t.getApellido());
-                    pst.setShort(3, t.getTipo_documento());
-                    pst.setInt(4, t.getDocumento());
-                    pst.setInt(5, t.getTelefono());
-                    pst.setString(6, t.getEmail());
-                    pst.setString(7, t.getDireccion());
+                    pst.setString(1, t.getNombre());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
@@ -135,7 +120,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
 
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se registró, ya existe un Personal con el DNI ingresado");
+                    beancrud.setMessageServer("No se registró, ya existe una Categoría con el nombre ingresado");
                 }
             }
             pst.close();
@@ -147,42 +132,33 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public BeanCrud update(Personal t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud update(SubCategoria t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
         try (Connection conn = this.pool.getConnection(); SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sSQL.append("`personal` WHERE DOCUMENTO = ? ");
+            sSQL.append("SELECT COUNT(IDSUBCATEGORIA) AS COUNT FROM ");
+            sSQL.append("`subcategoria` WHERE NOMBRE = ? ");
             pst = conn.prepareStatement(sSQL.toString());
-            pst.setInt(1, t.getDocumento());
+            pst.setString(1, t.getNombre());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("UPDATE ");
-                    sSQL.append("`personal` SET NOMBRE = ?, APELLIDOS = ?,");
-                    sSQL.append(" TIPO_DOCUMENTO = ?,DOCUMENTO = ?,");
-                    sSQL.append(" TELEFONO = ?,EMAIL = ?,");
-                    sSQL.append(" DIRECCION = ? WHERE IDPERSONAL = ?");
+                    sSQL.append("`subcategoria`  SET NOMBRE = ? WHERE IDSUBCATEGORIA = ?");
                     pst = conn.prepareStatement(sSQL.toString());
-                     pst.setString(1, t.getNombre());
-                     pst.setString(2, t.getApellido());
-                    pst.setShort(3, t.getTipo_documento());
-                    pst.setInt(4, t.getDocumento());
-                    pst.setInt(5, t.getTelefono());
-                    pst.setString(6, t.getEmail());
-                    pst.setString(7, t.getDireccion());
-                    pst.setLong(8, t.getIdpersonal());
+                    pst.setString(1, t.getNombre());
+                    pst.setLong(2, t.getIdsubcategoria());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
                     beancrud.setMessageServer("ok");
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se modificó, ya existe un Personal con el nombre ingresado");
+                    beancrud.setMessageServer("No se modificó, ya existe una Categoría con el nombre ingresado");
                 }
             }
             pst.close();
@@ -201,8 +177,8 @@ public class PersonalDAOImpl implements IPersonalDAO {
         try (Connection conn = this.pool.getConnection(); SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDENTRADA) AS COUNT FROM ");
-            sSQL.append("`entrada`  WHERE IDPERSONAL = ?");
+            sSQL.append("SELECT COUNT(IDPRODUCTO) AS COUNT FROM ");
+            sSQL.append("`producto`  WHERE IDSUBCATEGORIA = ?");
             pst = conn.prepareStatement(sSQL.toString());
             pst.setInt(1, id.intValue());
             rs = pst.executeQuery();
@@ -210,7 +186,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("DELETE FROM ");
-                    sSQL.append("`personal` WHERE IDPERSONAL = ?");
+                    sSQL.append("`subcategoria`  WHERE IDSUBCATEGORIA = ?");
                     pst = conn.prepareStatement(sSQL.toString());
                     pst.setInt(1, id.intValue());
                     LOG.info(pst.toString());
@@ -219,7 +195,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
                     beancrud.setMessageServer("ok");
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se eliminó, existe una Entrada asociado a este Personal");
+                    beancrud.setMessageServer("No se eliminó, existe un Producto asociado a esta Categoría");
                 }
             }
             pst.close();
@@ -231,30 +207,30 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public Personal getForId(Long id) throws SQLException {
-        Personal personal = new Personal();
+    public SubCategoria getForId(Long id) throws SQLException {
+        SubCategoria subcategoria = new SubCategoria();
         PreparedStatement pst;
         ResultSet rs;
         try (Connection conn = this.pool.getConnection();
                 SQLCloseable finish = conn::rollback;) {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sbSQL.append("`personal` WHERE ");
-            sbSQL.append("IDPERSONAL = ? ");
+            sbSQL.append("SELECT COUNT(IDSUBCATEGORIA) AS COUNT FROM ");
+            sbSQL.append("`subcategoria` WHERE ");
+            sbSQL.append("IDSUBCATEGORIA = ? ");
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setLong(1, id);
             LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
-                personal.setIdpersonal(rs.getLong("IDPERSONAL"));
-                personal.setNombre(rs.getString("NOMBRE"));
+                subcategoria.setIdsubcategoria(rs.getLong("IDSUBCATEGORIA"));
+                subcategoria.setNombre(rs.getString("NOMBRE"));
             }
             rs.close();
             pst.close();
         } catch (SQLException ex) {
             throw ex;
         }
-        return personal;
+        return subcategoria;
     }
 
 }

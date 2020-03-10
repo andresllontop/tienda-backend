@@ -5,9 +5,9 @@
  */
 package com.codedoblea.tienda.api;
 
-import com.codedoblea.tienda.dao.ICategoriaDAO;
-import com.codedoblea.tienda.dao.impl.CategoriaDAOImpl;
-import com.codedoblea.tienda.model.Categoria;
+import com.codedoblea.tienda.dao.IProductoDAO;
+import com.codedoblea.tienda.dao.impl.ProductoDAOImpl;
+import com.codedoblea.tienda.model.Producto;
 import com.codedoblea.tienda.security.annotation.Secured;
 import com.codedoblea.tienda.utilities.DataSourceTIENDA;
 import com.codedoblea.tienda.utilities.ParametersDefault;
@@ -33,18 +33,19 @@ import javax.ws.rs.core.Response;
  * @author andres
  */
 @Singleton
-@Path("/categorias")
+@Path("/productos")
 @Secured
-public class CategoriaAPI {
+public class ProductoAPI {
 
-    private static final Logger LOG = Logger.getLogger(CategoriaAPI.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProductoAPI.class.getName());
     private final DataSource pool;
-    private final ICategoriaDAO categoriaDAO;
+    private final IProductoDAO productoDAO;
 
-    public CategoriaAPI() {
+    public ProductoAPI() {
         this.pool = DataSourceTIENDA.getPool();
-        this.categoriaDAO = new CategoriaDAOImpl(this.pool);
+        this.productoDAO = new ProductoDAOImpl(this.pool);
     }
+
     @Path("/paginate")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -53,11 +54,28 @@ public class CategoriaAPI {
             @QueryParam("page") Integer page,
             @QueryParam("size") Integer size) throws Exception {
         HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("FILTER", nombre.toLowerCase());
-        parameters.put("SQL_ORDERS", " ORDER BY NOMBRE ASC ");
+        switch (Integer.parseInt(nombre.substring(nombre.length() - 1))) {
+            case 1:
+                parameters.put("SQL_FILTER", "LOWER(pro.NOMBRE) ");
+                parameters.put("SQL_ORDERS", " ORDER BY pro.NOMBRE ASC ");
+                break;
+            case 2:
+                 parameters.put("SQL_FILTER","LOWER(cat.NOMBRE) ");
+                 parameters.put("SQL_ORDERS", " ORDER BY cat.NOMBRE ASC ");
+                break;
+            case 3:
+                 parameters.put("SQL_FILTER", "PRECIO ");
+                 parameters.put("SQL_ORDERS", " ORDER BY pro.PRECIO ASC ");
+                break;
+            default:
+                 parameters.put("SQL_FILTER", "LOWER(pro.CODIGO) ");
+                 parameters.put("SQL_ORDERS", " ORDER BY pro.CODIGO ASC ");
+                break;
+        }
+        parameters.put("FILTER", nombre.substring(0, nombre.length() - 1).toLowerCase());
         parameters.put("SQL_PAGINATION", " LIMIT " + size + " OFFSET " + (page - 1) * size);
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.getPagination(parameters))
+                .entity(this.productoDAO.getPagination(parameters))
                 .build();
     }
 
@@ -65,10 +83,10 @@ public class CategoriaAPI {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response add(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response add(Producto producto) throws SQLException {
+        LOG.info(producto.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.add(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.productoDAO.add(producto, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
@@ -76,10 +94,10 @@ public class CategoriaAPI {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response update(Producto producto) throws SQLException {
+        LOG.info(producto.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.update(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.productoDAO.update(producto, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
@@ -90,8 +108,17 @@ public class CategoriaAPI {
     public Response delete(@PathParam("id") Long id) throws SQLException {
         LOG.info(id.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.delete(id, ParametersDefault.getParametersDefault()))
+                .entity(this.productoDAO.delete(id, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
+    @Path("/model")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response model(
+            @QueryParam("codigo") String codigo) throws Exception {
+        return Response.status(Response.Status.OK)
+                .entity(this.productoDAO.getForCodigo(codigo))
+                .build();
+    }
 }

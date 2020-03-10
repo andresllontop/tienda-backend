@@ -3,10 +3,11 @@ package com.codedoblea.tienda.utilities;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BeanCrud {
+public class BeanCrud<T>{
 
     private String messageServer;
     private BeanPagination beanPagination;
+    private T classGeneric;
 
     public String getMessageServer() {
         return messageServer;
@@ -24,9 +25,19 @@ public class BeanCrud {
         this.beanPagination = beanPagination;
     }
 
+    public T getClassGeneric() {
+        return classGeneric;
+    }
+
+    public void setClassGeneric(T classGeneric) {
+        this.classGeneric = classGeneric;
+    }
+
     @Override
     public String toString() {
-        return "BeanCrud [messageServer=" + messageServer + ", beanPagination=" + beanPagination + "]";
+        return "BeanCrud [messageServer=" + messageServer + 
+                ", beanPagination=" + beanPagination +
+                ", classGeneric=" + classGeneric +"]";
     }
 
 }

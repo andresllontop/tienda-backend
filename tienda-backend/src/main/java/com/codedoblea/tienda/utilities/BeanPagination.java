@@ -7,6 +7,7 @@ public class BeanPagination {
 
     private Long count_filter;
     private List<?> list;
+  
 
     public Long getCount_filter() {
         return count_filter;

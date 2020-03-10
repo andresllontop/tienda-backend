@@ -6,11 +6,13 @@
 package com.codedoblea.tienda.dao;
 
 import com.codedoblea.tienda.model.Producto;
+import com.codedoblea.tienda.utilities.BeanCrud;
+import java.sql.SQLException;
 
 /**
  *
  * @author andres
  */
 public interface IProductoDAO extends CRUD<Producto> {
-    
+    public BeanCrud getForCodigo(String codigo) throws SQLException;
 }

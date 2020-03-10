@@ -21,10 +21,9 @@ public class SubCategoria {
         this.idsubcategoria = idsubcategoria;
     }
 
-    public SubCategoria(Long idsubcategoria, String nombre, Categoria categoria) {
+    public SubCategoria(Long idsubcategoria, String nombre) {
         this.idsubcategoria = idsubcategoria;
         this.nombre = nombre;
-        this.categoria = categoria;
     }
 
     public Long getIdsubcategoria() {

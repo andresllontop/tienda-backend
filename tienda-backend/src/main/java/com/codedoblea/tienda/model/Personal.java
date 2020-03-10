@@ -30,16 +30,18 @@ public class Personal {
         this.idpersonal = idpersonal;
     }
 
-    public Personal(Long idpersonal, String nombre, Short tipo_documento, 
-            Integer documento, Integer telefono, String email, String direccion) {
+    public Personal(Long idpersonal, String nombre, String apellido, Short tipo_documento, Integer documento, Integer telefono, String email, String direccion) {
         this.idpersonal = idpersonal;
         this.nombre = nombre;
+        this.apellido = apellido;
         this.tipo_documento = tipo_documento;
         this.documento = documento;
         this.telefono = telefono;
         this.email = email;
         this.direccion = direccion;
     }
+
+   
 
     public Long getIdpersonal() {
         return idpersonal;
@@ -95,6 +97,14 @@ public class Personal {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
     }
     
             

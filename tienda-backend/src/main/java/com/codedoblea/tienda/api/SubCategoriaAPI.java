@@ -5,9 +5,9 @@
  */
 package com.codedoblea.tienda.api;
 
-import com.codedoblea.tienda.dao.ICategoriaDAO;
-import com.codedoblea.tienda.dao.impl.CategoriaDAOImpl;
-import com.codedoblea.tienda.model.Categoria;
+import com.codedoblea.tienda.dao.ISubCategoriaDAO;
+import com.codedoblea.tienda.dao.impl.SubCategoriaDAOImpl;
+import com.codedoblea.tienda.model.SubCategoria;
 import com.codedoblea.tienda.security.annotation.Secured;
 import com.codedoblea.tienda.utilities.DataSourceTIENDA;
 import com.codedoblea.tienda.utilities.ParametersDefault;
@@ -33,17 +33,17 @@ import javax.ws.rs.core.Response;
  * @author andres
  */
 @Singleton
-@Path("/categorias")
+@Path("/subcategorias")
 @Secured
-public class CategoriaAPI {
+public class SubCategoriaAPI {
 
-    private static final Logger LOG = Logger.getLogger(CategoriaAPI.class.getName());
+    private static final Logger LOG = Logger.getLogger(SubCategoriaAPI.class.getName());
     private final DataSource pool;
-    private final ICategoriaDAO categoriaDAO;
+    private final ISubCategoriaDAO subcategoriaDAO;
 
-    public CategoriaAPI() {
+    public SubCategoriaAPI() {
         this.pool = DataSourceTIENDA.getPool();
-        this.categoriaDAO = new CategoriaDAOImpl(this.pool);
+        this.subcategoriaDAO = new SubCategoriaDAOImpl(this.pool);
     }
     @Path("/paginate")
     @GET
@@ -57,7 +57,7 @@ public class CategoriaAPI {
         parameters.put("SQL_ORDERS", " ORDER BY NOMBRE ASC ");
         parameters.put("SQL_PAGINATION", " LIMIT " + size + " OFFSET " + (page - 1) * size);
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.getPagination(parameters))
+                .entity(this.subcategoriaDAO.getPagination(parameters))
                 .build();
     }
 
@@ -65,10 +65,10 @@ public class CategoriaAPI {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response add(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response add(SubCategoria subcategoria) throws SQLException {
+        LOG.info(subcategoria.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.add(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.subcategoriaDAO.add(subcategoria, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
@@ -76,10 +76,10 @@ public class CategoriaAPI {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response update(SubCategoria subcategoria) throws SQLException {
+        LOG.info(subcategoria.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.update(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.subcategoriaDAO.update(subcategoria, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
@@ -90,7 +90,7 @@ public class CategoriaAPI {
     public Response delete(@PathParam("id") Long id) throws SQLException {
         LOG.info(id.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.delete(id, ParametersDefault.getParametersDefault()))
+                .entity(this.subcategoriaDAO.delete(id, ParametersDefault.getParametersDefault()))
                 .build();
     }
 

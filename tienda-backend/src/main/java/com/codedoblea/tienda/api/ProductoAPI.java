@@ -8,6 +8,7 @@ package com.codedoblea.tienda.api;
 import com.codedoblea.tienda.dao.IProductoDAO;
 import com.codedoblea.tienda.dao.impl.ProductoDAOImpl;
 import com.codedoblea.tienda.model.Producto;
+import com.codedoblea.tienda.model.others.BeanProducto;
 import com.codedoblea.tienda.security.annotation.Secured;
 import com.codedoblea.tienda.utilities.DataSourceTIENDA;
 import com.codedoblea.tienda.utilities.ParametersDefault;
@@ -56,22 +57,19 @@ public class ProductoAPI {
         HashMap<String, Object> parameters = new HashMap<>();
         switch (Integer.parseInt(nombre.substring(nombre.length() - 1))) {
             case 1:
-                parameters.put("SQL_FILTER", "LOWER(pro.NOMBRE) ");
-                parameters.put("SQL_ORDERS", " ORDER BY pro.NOMBRE ASC ");
+                parameters.put("SQL_FILTER", "LOWER(PRO.NOMBRE) ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.NOMBRE ASC ");
                 break;
             case 2:
-                 parameters.put("SQL_FILTER","LOWER(cat.NOMBRE) ");
-                 parameters.put("SQL_ORDERS", " ORDER BY cat.NOMBRE ASC ");
-                break;
-            case 3:
-                 parameters.put("SQL_FILTER", "PRECIO ");
-                 parameters.put("SQL_ORDERS", " ORDER BY pro.PRECIO ASC ");
+                parameters.put("SQL_FILTER", "PRO.PRECIO ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.PRECIO ASC ");
                 break;
             default:
-                 parameters.put("SQL_FILTER", "LOWER(pro.CODIGO) ");
-                 parameters.put("SQL_ORDERS", " ORDER BY pro.CODIGO ASC ");
+                parameters.put("SQL_FILTER", "LOWER(PRO.CODIGO) ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.CODIGO ASC ");
                 break;
         }
+        parameters.put("INDICE", "0");
         parameters.put("FILTER", nombre.substring(0, nombre.length() - 1).toLowerCase());
         parameters.put("SQL_PAGINATION", " LIMIT " + size + " OFFSET " + (page - 1) * size);
         return Response.status(Response.Status.OK)
@@ -83,10 +81,10 @@ public class ProductoAPI {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response add(Producto producto) throws SQLException {
-        LOG.info(producto.toString());
+    public Response add(BeanProducto beanProducto) throws SQLException {
+        LOG.info(beanProducto.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.productoDAO.add(producto, ParametersDefault.getParametersDefault()))
+                .entity(this.productoDAO.addBeanProducto(beanProducto))
                 .build();
     }
 
@@ -94,10 +92,10 @@ public class ProductoAPI {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Producto producto) throws SQLException {
-        LOG.info(producto.toString());
+    public Response update(BeanProducto beanProducto) throws SQLException {
+        LOG.info(beanProducto.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.productoDAO.update(producto, ParametersDefault.getParametersDefault()))
+                .entity(this.productoDAO.updateBeanProducto(beanProducto))
                 .build();
     }
 
@@ -121,4 +119,49 @@ public class ProductoAPI {
                 .entity(this.productoDAO.getForCodigo(codigo))
                 .build();
     }
+
+    @Path("/detalles/properties/paginate")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response detallesproductopaginate(
+            @QueryParam("idproducto") Integer idproducto
+    ) throws Exception {
+        HashMap<String, Object> parameters = new HashMap<>();
+        parameters.put("FILTER", idproducto);
+        parameters.put("INDICE", "2");
+        return Response.status(Response.Status.OK)
+                .entity(this.productoDAO.getPagination(parameters))
+                .build();
+    }
+
+    @Path("/detalles/paginate")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response detallespaginate(
+            @QueryParam("nombre") String nombre,
+            @QueryParam("page") Integer page,
+            @QueryParam("size") Integer size) throws Exception {
+        HashMap<String, Object> parameters = new HashMap<>();
+        switch (Integer.parseInt(nombre.substring(nombre.length() - 1))) {
+            case 1:
+                parameters.put("SQL_FILTER", "LOWER(PRO.NOMBRE) ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.NOMBRE ASC ");
+                break;
+            case 2:
+                parameters.put("SQL_FILTER", "PRO.PRECIO ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.PRECIO ASC ");
+                break;
+            default:
+                parameters.put("SQL_FILTER", "LOWER(PRO.CODIGO) ");
+                parameters.put("SQL_ORDERS", " ORDER BY PRO.CODIGO ASC ");
+                break;
+        }
+        parameters.put("INDICE", "1");
+        parameters.put("FILTER", nombre.substring(0, nombre.length() - 1).toLowerCase());
+        parameters.put("SQL_PAGINATION", " LIMIT " + size + " OFFSET " + (page - 1) * size);
+        return Response.status(Response.Status.OK)
+                .entity(this.productoDAO.getPagination(parameters))
+                .build();
+    }
+
 }

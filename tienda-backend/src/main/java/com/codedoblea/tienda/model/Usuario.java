@@ -57,6 +57,10 @@ public class Usuario implements Principal {
     public Usuario() {
     }
 
+    public Usuario(Long idusuario) {
+        this.idusuario = idusuario;
+    }
+
     public Usuario(String usuario, String login) {
         this.usuario = usuario;
         this.login = login;

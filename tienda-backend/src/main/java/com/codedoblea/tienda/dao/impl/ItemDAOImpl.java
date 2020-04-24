@@ -5,10 +5,9 @@
  */
 package com.codedoblea.tienda.dao.impl;
 
-import com.codedoblea.tienda.dao.IPersonalDAO;
+import com.codedoblea.tienda.dao.IItemDAO;
 import com.codedoblea.tienda.dao.SQLCloseable;
-import com.codedoblea.tienda.model.Personal;
-import com.codedoblea.tienda.model.Usuario;
+import com.codedoblea.tienda.model.Item;
 import com.codedoblea.tienda.utilities.BeanCrud;
 import com.codedoblea.tienda.utilities.BeanPagination;
 import java.sql.Connection;
@@ -25,13 +24,13 @@ import javax.sql.DataSource;
  *
  * @author andres
  */
-public class PersonalDAOImpl implements IPersonalDAO {
+public class ItemDAOImpl implements IItemDAO {
 
-    private static final Logger LOG = Logger.getLogger(PersonalDAOImpl.class.getName());
+    private static final Logger LOG = Logger.getLogger(ItemDAOImpl.class.getName());
     private final DataSource pool;
     private BeanCrud beancrud;
 
-    public PersonalDAOImpl(DataSource pool) {
+    public ItemDAOImpl(DataSource pool) {
         this.pool = pool;
     }
 
@@ -39,14 +38,16 @@ public class PersonalDAOImpl implements IPersonalDAO {
     public BeanPagination getPagination(HashMap<String, Object> parameters, Connection conn)
             throws SQLException {
         BeanPagination beanpagination = new BeanPagination();
-        List<Personal> list = new ArrayList<>();
+        List<Item> list = new ArrayList<>();
         PreparedStatement pst;
         ResultSet rs;
         try {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sbSQL.append("`personal` WHERE ");
-            sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
+            sbSQL.append("SELECT COUNT(IDITEM) AS COUNT FROM ");
+            sbSQL.append("`item` WHERE ");
+            sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%') ");
+            sbSQL.append(String.valueOf(parameters.get("SQL_FILTER")));
+            sbSQL.append(parameters.get("SQL_PAGINATION"));
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setString(1, String.valueOf(parameters.get("FILTER")));
             LOG.info(pst.toString());
@@ -56,8 +57,9 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 if (rs.getInt("COUNT") > 0) {
                     sbSQL.setLength(0);
                     sbSQL.append("SELECT * FROM ");
-                    sbSQL.append("`personal`  WHERE ");
-                    sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
+                    sbSQL.append("`item`  WHERE ");
+                    sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%') ");
+                    sbSQL.append(String.valueOf(parameters.get("SQL_FILTER")));
                     sbSQL.append(String.valueOf(parameters.get("SQL_ORDERS")));
                     sbSQL.append(parameters.get("SQL_PAGINATION"));
                     pst = conn.prepareStatement(sbSQL.toString());
@@ -65,12 +67,11 @@ public class PersonalDAOImpl implements IPersonalDAO {
                     LOG.info(pst.toString());
                     rs = pst.executeQuery();
                     while (rs.next()) {
-                        list.add(new Personal(new Usuario(rs.getLong("IDUSUARIO")),
-                                rs.getShort("ESTADO"), rs.getLong("IDPERSONAL"),
-                                rs.getString("NOMBRE"), rs.getString("APELLIDO_MAT"),
-                                rs.getString("APELLIDO_PAT"), rs.getShort("TIPO_DOCUMENTO"),
-                                rs.getShort("SEXO"), rs.getInt("DOCUMENTO"), rs.getInt("TELEFONO"),
-                                rs.getString("EMAIL"), rs.getString("DIRECCION")));
+                        Item item = new Item();
+                        item.setIditem(rs.getLong("IDITEM"));
+                        item.setNombre(rs.getString("NOMBRE"));
+                        item.setIndice(rs.getShort("INDICE"));
+                        list.add(item);
                     }
                 }
             }
@@ -95,7 +96,7 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public BeanCrud add(Personal t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud add(Item t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
@@ -103,40 +104,48 @@ public class PersonalDAOImpl implements IPersonalDAO {
                 = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sSQL.append("`personal`  WHERE NOMBRE = ?");
+            sSQL.append("SELECT COUNT(IDITEM) AS COUNT, MAX(IDITEM) AS MAXIMO FROM ");
+            sSQL.append("`item`  WHERE NOMBRE = ? ");
             pst = conn.prepareStatement(sSQL.toString());
             pst.setString(1, t.getNombre());
+            LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("INSERT INTO ");
-                    sSQL.append("`personal` (NOMBRE,APELLIDO_PAT,APELLIDO_MAT,");
-                    sSQL.append("TIPO_DOCUMENTO,DOCUMENTO,SEXO,ESTADO,");
-                    sSQL.append("TELEFONO,EMAIL,DIRECCION,IDCARGO,IDUSUARIO) ");
-                    sSQL.append("VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
+                    sSQL.append("`item` (NOMBRE,INDICE) VALUES(?,?)");
                     pst = conn.prepareStatement(sSQL.toString());
                     pst.setString(1, t.getNombre());
-                    pst.setString(2, t.getApellido_pat());
-                    pst.setString(3, t.getApellido_mat());
-                    pst.setShort(4, t.getTipo_documento());
-                    pst.setInt(5, t.getDocumento());
-                    pst.setShort(6, t.getSexo());
-                    pst.setShort(7, t.getEstado());
-                    pst.setInt(8, t.getTelefono());
-                    pst.setString(9, t.getEmail());
-                    pst.setString(10, t.getDireccion());
-                    pst.setLong(11, 1);
-                    pst.setLong(12, t.getUsuario().getIdusuario());
+                    pst.setShort(2, t.getIndice());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
                     beancrud.setMessageServer("ok");
+//                    
+                    sSQL.setLength(0);
+                    sSQL.append("SELECT MAX(IDITEM) AS MAXIMO FROM ");
+                    sSQL.append("`item`");
+                    pst = conn.prepareStatement(sSQL.toString());
+                    LOG.info(pst.toString());
+                    rs = pst.executeQuery();
+                    while (rs.next()) {
+                        t.setIditem(rs.getLong("MAXIMO"));
+                    }
+                    beancrud.setClassGeneric(t);
+//                    
+                    switch (t.getIndice()) {
+                        case 1:
+                            parameters.put("SQL_FILTER", "AND INDICE = 1 ");
 
+                            break;
+                        default:
+                            parameters.put("SQL_FILTER", "AND INDICE = 2 ");
+                            break;
+                    }
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se registró, ya existe un Personal con el DNI ingresado");
+                    beancrud.setMessageServer("No se registró, ya existe un elemento con el nombre ingresado");
                 }
             }
             pst.close();
@@ -148,43 +157,44 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public BeanCrud update(Personal t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud update(Item t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
         try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sSQL.append("`personal` WHERE DOCUMENTO = ? AND IDPERSONAL != ?");
+            sSQL.append("SELECT COUNT(IDITEM) AS COUNT FROM ");
+            sSQL.append("`item` WHERE NOMBRE = ? AND IDITEM != ? ");
             pst = conn.prepareStatement(sSQL.toString());
-            pst.setInt(1, t.getDocumento());
-            pst.setLong(2, t.getIdpersona());
+            pst.setString(1, t.getNombre());
+            pst.setLong(2, t.getIditem());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("UPDATE ");
-                    sSQL.append("`personal` SET NOMBRE = ?, APELLIDO_PAT = ?,");
-                    sSQL.append(" TIPO_DOCUMENTO = ?,DOCUMENTO = ?,");
-                    sSQL.append(" TELEFONO = ?,EMAIL = ?,");
-                    sSQL.append(" DIRECCION = ? WHERE IDPERSONAL = ?");
+                    sSQL.append("`item` SET NOMBRE = ?, INDICE = ? WHERE IDITEM = ?");
                     pst = conn.prepareStatement(sSQL.toString());
                     pst.setString(1, t.getNombre());
-                    pst.setString(2, t.getApellido_pat());
-                    pst.setShort(3, t.getTipo_documento());
-                    pst.setInt(4, t.getDocumento());
-                    pst.setInt(5, t.getTelefono());
-                    pst.setString(6, t.getEmail());
-                    pst.setString(7, t.getDireccion());
-                    pst.setLong(8, t.getIdpersona());
+                    pst.setShort(2, t.getIndice());
+                    pst.setLong(3, t.getIditem());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
                     beancrud.setMessageServer("ok");
+                    switch (t.getIndice()) {
+                        case 1:
+                            parameters.put("SQL_FILTER", "AND INDICE = 1 ");
+
+                            break;
+                        default:
+                            parameters.put("SQL_FILTER", "AND INDICE = 2 ");
+                            break;
+                    }
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se modificó, ya existe un Personal con el nombre ingresado");
+                    beancrud.setMessageServer("No se modificó, ya existe un elemento con el nombre ingresado");
                 }
             }
             pst.close();
@@ -203,25 +213,51 @@ public class PersonalDAOImpl implements IPersonalDAO {
         try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDENTRADA) AS COUNT FROM ");
-            sSQL.append("`entrada`  WHERE IDPERSONAL = ?");
+            sSQL.append("SELECT COUNT(PRO.IDPRODUCTO) AS COUNT ");
+            sSQL.append("FROM `producto` as PRO ");
+            sSQL.append("WHERE PRO.IDCATEGORIA = ? OR PRO.IDMARCA = ? ");
             pst = conn.prepareStatement(sSQL.toString());
             pst.setInt(1, id.intValue());
+            pst.setInt(2, id.intValue());
+            LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
-                    sSQL.append("DELETE FROM ");
-                    sSQL.append("`personal` WHERE IDPERSONAL = ?");
+                    sSQL.append("SELECT COUNT(IDITEM) AS COUNT, INDICE FROM ");
+                    sSQL.append("`item` WHERE IDITEM = ? ");
                     pst = conn.prepareStatement(sSQL.toString());
                     pst.setInt(1, id.intValue());
                     LOG.info(pst.toString());
-                    pst.executeUpdate();
-                    conn.commit();
-                    beancrud.setMessageServer("ok");
-                    beancrud.setBeanPagination(getPagination(parameters, conn));
+                    rs = pst.executeQuery();
+                    while (rs.next()) {
+                        if (rs.getInt("COUNT") >= 1) {
+                            switch (rs.getShort("INDICE")) {
+                                case 1:
+                                    parameters.put("SQL_FILTER", "AND INDICE = 1 ");
+                                    break;
+                                default:
+                                    parameters.put("SQL_FILTER", "AND INDICE = 2 ");
+                                    break;
+                            }
+                            sSQL.setLength(0);
+                            sSQL.append("DELETE FROM ");
+                            sSQL.append("`item`  WHERE IDITEM = ?");
+                            pst = conn.prepareStatement(sSQL.toString());
+                            pst.setInt(1, id.intValue());
+                            LOG.info(pst.toString());
+                            pst.executeUpdate();
+                            conn.commit();
+                            beancrud.setMessageServer("ok");
+
+                            beancrud.setBeanPagination(getPagination(parameters, conn));
+                        } else {
+                            beancrud.setMessageServer("No se eliminó, No existe el elemento");
+                        }
+                    }
+
                 } else {
-                    beancrud.setMessageServer("No se eliminó, existe una Entrada asociado a este Personal");
+                    beancrud.setMessageServer("No se eliminó, existe un Producto asociado");
                 }
             }
             pst.close();
@@ -233,29 +269,29 @@ public class PersonalDAOImpl implements IPersonalDAO {
     }
 
     @Override
-    public Personal getForId(Long id) throws SQLException {
-        Personal personal = new Personal();
+    public Item getForId(Long id) throws SQLException {
+        Item item = new Item();
         PreparedStatement pst;
         ResultSet rs;
         try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDPERSONAL) AS COUNT FROM ");
-            sbSQL.append("`personal` WHERE ");
-            sbSQL.append("IDPERSONAL = ? ");
+            sbSQL.append("SELECT COUNT(IDITEM) AS COUNT FROM ");
+            sbSQL.append("`item` WHERE ");
+            sbSQL.append("IDITEM = ? ");
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setLong(1, id);
             LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
-                personal.setIdpersona(rs.getLong("IDPERSONAL"));
-                personal.setNombre(rs.getString("NOMBRE"));
+                item.setIditem(rs.getLong("IDITEM"));
+                item.setNombre(rs.getString("NOMBRE"));
             }
             rs.close();
             pst.close();
         } catch (SQLException ex) {
             throw ex;
         }
-        return personal;
+        return item;
     }
 
 }

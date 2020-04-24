@@ -10,9 +10,9 @@ package com.codedoblea.tienda.model;
  * @author andres
  */
 public class DetalleProducto {
+
     private Long iddetalle_producto;
-    private Color color;
-    private UnidadMedida unidad_medida;
+    private String longitud;
     private Producto producto;
 
     public DetalleProducto() {
@@ -22,11 +22,9 @@ public class DetalleProducto {
         this.iddetalle_producto = iddetalle_producto;
     }
 
-    public DetalleProducto(Long iddetalle_producto, Color color, 
-            UnidadMedida unidad_medida, Producto producto) {
+    public DetalleProducto(Long iddetalle_producto, String longitud, Producto producto) {
         this.iddetalle_producto = iddetalle_producto;
-        this.color = color;
-        this.unidad_medida = unidad_medida;
+        this.longitud = longitud;
         this.producto = producto;
     }
 
@@ -38,20 +36,12 @@ public class DetalleProducto {
         this.iddetalle_producto = iddetalle_producto;
     }
 
-    public Color getColor() {
-        return color;
+    public String getLongitud() {
+        return longitud;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
-    public UnidadMedida getUnidad_medida() {
-        return unidad_medida;
-    }
-
-    public void setUnidad_medida(UnidadMedida unidad_medida) {
-        this.unidad_medida = unidad_medida;
+    public void setLongitud(String longitud) {
+        this.longitud = longitud;
     }
 
     public Producto getProducto() {
@@ -61,6 +51,7 @@ public class DetalleProducto {
     public void setProducto(Producto producto) {
         this.producto = producto;
     }
+
     
-            
+
 }

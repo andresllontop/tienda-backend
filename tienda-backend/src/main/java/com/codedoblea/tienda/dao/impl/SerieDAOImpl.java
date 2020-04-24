@@ -5,9 +5,9 @@
  */
 package com.codedoblea.tienda.dao.impl;
 
-import com.codedoblea.tienda.dao.IUnidadMedidaDAO;
+import com.codedoblea.tienda.dao.ISerieDAO;
 import com.codedoblea.tienda.dao.SQLCloseable;
-import com.codedoblea.tienda.model.UnidadMedida;
+import com.codedoblea.tienda.model.Serie;
 import com.codedoblea.tienda.utilities.BeanCrud;
 import com.codedoblea.tienda.utilities.BeanPagination;
 import java.sql.Connection;
@@ -19,17 +19,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+
 /**
  *
  * @author andres
  */
-public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
+public class SerieDAOImpl implements ISerieDAO {
 
-    private static final Logger LOG = Logger.getLogger(UnidadMedidaDAOImpl.class.getName());
+    private static final Logger LOG = Logger.getLogger(SerieDAOImpl.class.getName());
     private final DataSource pool;
     private BeanCrud beancrud;
 
-    public UnidadMedidaDAOImpl(DataSource pool) {
+    public SerieDAOImpl(DataSource pool) {
         this.pool = pool;
     }
 
@@ -37,14 +38,15 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
     public BeanPagination getPagination(HashMap<String, Object> parameters, Connection conn)
             throws SQLException {
         BeanPagination beanpagination = new BeanPagination();
-        List<UnidadMedida> list = new ArrayList<>();
+        List<Serie> list = new ArrayList<>();
         PreparedStatement pst;
         ResultSet rs;
         try {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDUNIDAD_MEDIDA) AS COUNT FROM ");
-            sbSQL.append("`unidad_medida` WHERE ");
-            sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
+            sbSQL.append("SELECT COUNT(IDSERIE) AS COUNT FROM ");
+            sbSQL.append("`serie` WHERE ");
+            sbSQL.append("LOWER(TIPO_DOCUMENTO) LIKE CONCAT('%',?,'%') ");
+            sbSQL.append(parameters.get("SQL_PAGINATION"));
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setString(1, String.valueOf(parameters.get("FILTER")));
             LOG.info(pst.toString());
@@ -54,8 +56,8 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
                 if (rs.getInt("COUNT") > 0) {
                     sbSQL.setLength(0);
                     sbSQL.append("SELECT * FROM ");
-                    sbSQL.append("`unidad_medida`  WHERE ");
-                    sbSQL.append("LOWER(NOMBRE) LIKE CONCAT('%',?,'%')");
+                    sbSQL.append("`serie`  WHERE ");
+                    sbSQL.append("LOWER(TIPO_DOCUMENTO) LIKE CONCAT('%',?,'%') ");
                     sbSQL.append(String.valueOf(parameters.get("SQL_ORDERS")));
                     sbSQL.append(parameters.get("SQL_PAGINATION"));
                     pst = conn.prepareStatement(sbSQL.toString());
@@ -63,11 +65,15 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
                     LOG.info(pst.toString());
                     rs = pst.executeQuery();
                     while (rs.next()) {
-                        UnidadMedida unidadMedida = new UnidadMedida();
-                        unidadMedida.setIdunidad_medida(rs.getLong("IDUNIDAD_MEDIDA"));
-                        unidadMedida.setNombre(rs.getString("NOMBRE"));
-                        unidadMedida.setAbreviatura(rs.getString("ABREVIATURA"));
-                        list.add(unidadMedida);
+                        Serie serie = new Serie();
+                        serie.setIdserie(rs.getLong("IDSERIE"));
+                        serie.setTipo_documento(rs.getShort("TIPO_DOCUMENTO"));
+                        serie.setNumero_serie(rs.getString("NUMERO_SERIE"));
+                        serie.setNumero_inicial(rs.getString("NUMERO_INICIAL"));
+                        serie.setNumero_final(rs.getString("NUMERO_FINAL"));
+                        serie.setNumero_actual(rs.getString("NUMERO_ACTUAL"));
+
+                        list.add(serie);
                     }
                 }
             }
@@ -83,7 +89,7 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
     @Override
     public BeanCrud getPagination(HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
-        try (Connection conn = pool.getConnection()) {
+        try ( Connection conn = pool.getConnection()) {
             beancrud.setBeanPagination(getPagination(parameters, conn));
         } catch (SQLException e) {
             throw e;
@@ -92,37 +98,39 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
     }
 
     @Override
-    public BeanCrud add(UnidadMedida t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud add(Serie t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
-        try (Connection conn = this.pool.getConnection();
-                SQLCloseable finish
+        try ( Connection conn = this.pool.getConnection();  SQLCloseable finish
                 = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDUNIDAD_MEDIDA) AS COUNT FROM ");
-            sSQL.append("`unidad_medida`  WHERE NOMBRE = ?");
+            sSQL.append("SELECT COUNT(IDSERIE) AS COUNT FROM ");
+            sSQL.append("`serie`  WHERE NUMERO_SERIE = ? ");
             pst = conn.prepareStatement(sSQL.toString());
-            pst.setString(1, t.getNombre());
+            pst.setString(1, t.getNumero_serie());
+            LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
-                    sSQL.append("INSERT INTO ");
-                    sSQL.append("`unidad_medida` (NOMBRE,");
-                    sSQL.append("ABREVIATURA) ");
-                    sSQL.append("VALUES(?,?) ");
+                    sSQL.append("INSERT INTO `serie` ");
+                    sSQL.append("(TIPO_DOCUMENTO,NUMERO_SERIE,NUMERO_INICIAL,NUMERO_FINAL,NUMERO_ACTUAL) ");
+                    sSQL.append(" VALUES(?,?,?,?,?)");
                     pst = conn.prepareStatement(sSQL.toString());
-                    pst.setString(1, t.getNombre());
-                    pst.setString(2, t.getAbreviatura());
+                    pst.setShort(1, t.getTipo_documento());
+                    pst.setString(2, t.getNumero_serie());
+                    pst.setString(3, t.getNumero_inicial());
+                    pst.setString(4, t.getNumero_final());
+                    pst.setString(5, t.getNumero_actual());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
                     beancrud.setMessageServer("ok");
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se registró, ya existe un UnidadMedida con el Nombre ingresado");
+                    beancrud.setMessageServer("No se registró, ya existe un elemento con el nombre ingresado");
                 }
             }
             pst.close();
@@ -134,37 +142,40 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
     }
 
     @Override
-    public BeanCrud update(UnidadMedida t, HashMap<String, Object> parameters) throws SQLException {
+    public BeanCrud update(Serie t, HashMap<String, Object> parameters) throws SQLException {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
-        try (Connection conn = this.pool.getConnection(); SQLCloseable finish = conn::rollback;) {
+        try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDUNIDAD_MEDIDA) AS COUNT FROM ");
-            sSQL.append("`unidad_medida` WHERE (NOMBRE = ? OR ABREVIATURA = ?) AND IDUNIDAD_MEDIDA != ? ");
+            sSQL.append("SELECT COUNT(IDSERIE) AS COUNT FROM ");
+            sSQL.append("`serie` WHERE TIPO_DOCUMENTO = ? AND IDSERIE != ? ");
             pst = conn.prepareStatement(sSQL.toString());
-            pst.setString(1, t.getNombre());
-            pst.setString(2, t.getAbreviatura());
-            pst.setLong(3, t.getIdunidad_medida());
+            pst.setShort(1, t.getTipo_documento());
+            pst.setLong(2, t.getIdserie());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("UPDATE ");
-                    sSQL.append("`unidad_medida` SET NOMBRE = ?,");
-                    sSQL.append(" ABREVIATURA = ? WHERE IDUNIDAD_MEDIDA = ?");
+                    sSQL.append("`serie` SET TIPO_DOCUMENTO = ?,NUMERO_SERIE = ?,");
+                    sSQL.append("NUMERO_INICIAL = ?,NUMERO_FINAL = ?,NUMERO_ACTUAL = ? ");
+                    sSQL.append(" WHERE IDSERIE = ?");
                     pst = conn.prepareStatement(sSQL.toString());
-                     pst.setString(1, t.getNombre());
-                    pst.setString(2, t.getAbreviatura());
-                    pst.setLong(3, t.getIdunidad_medida());
+                    pst.setShort(1, t.getTipo_documento());
+                    pst.setString(2, t.getNumero_serie());
+                    pst.setString(3, t.getNumero_inicial());
+                    pst.setString(4, t.getNumero_final());
+                    pst.setString(5, t.getNumero_actual());
+                    pst.setLong(6, t.getIdserie());
                     LOG.info(pst.toString());
                     pst.executeUpdate();
                     conn.commit();
                     beancrud.setMessageServer("ok");
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se modificó, ya existe un Unidad de Medida con los datos ingresados");
+                    beancrud.setMessageServer("No se modificó, ya existe un elemento con el nombre ingresado");
                 }
             }
             pst.close();
@@ -180,19 +191,22 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
         beancrud = new BeanCrud();
         PreparedStatement pst;
         ResultSet rs;
-        try (Connection conn = this.pool.getConnection(); SQLCloseable finish = conn::rollback;) {
+        try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             conn.setAutoCommit(false);
             StringBuilder sSQL = new StringBuilder();
-            sSQL.append("SELECT COUNT(IDDETALLE_PRODUCTO) AS COUNT FROM ");
-            sSQL.append("`producto` WHERE IDUNIDAD_MEDIDA = ?");
+            sSQL.append("SELECT COUNT(PRO.IDPRODUCTO) AS COUNT ");
+            sSQL.append("FROM `producto` as PRO ");
+            sSQL.append("WHERE PRO.IDCATEGORIA = ? OR PRO.IDMARCA = ? ");
             pst = conn.prepareStatement(sSQL.toString());
             pst.setInt(1, id.intValue());
+            pst.setInt(2, id.intValue());
+            LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
                 if (rs.getInt("COUNT") == 0) {
                     sSQL.setLength(0);
                     sSQL.append("DELETE FROM ");
-                    sSQL.append("`unidad_medida` WHERE IDUNIDAD_MEDIDA = ?");
+                    sSQL.append("`serie`  WHERE IDSERIE = ?");
                     pst = conn.prepareStatement(sSQL.toString());
                     pst.setInt(1, id.intValue());
                     LOG.info(pst.toString());
@@ -201,7 +215,7 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
                     beancrud.setMessageServer("ok");
                     beancrud.setBeanPagination(getPagination(parameters, conn));
                 } else {
-                    beancrud.setMessageServer("No se eliminó, existe un Detalle del Producto asociado a este Unidad de Medida");
+                    beancrud.setMessageServer("No se eliminó, existe un Producto asociado");
                 }
             }
             pst.close();
@@ -213,31 +227,29 @@ public class UnidadMedidaDAOImpl implements IUnidadMedidaDAO {
     }
 
     @Override
-    public UnidadMedida getForId(Long id) throws SQLException {
-        UnidadMedida unidadMedida = new UnidadMedida();
+    public Serie getForId(Long id) throws SQLException {
+        Serie serie = new Serie();
         PreparedStatement pst;
         ResultSet rs;
-        try (Connection conn = this.pool.getConnection();
-                SQLCloseable finish = conn::rollback;) {
+        try ( Connection conn = this.pool.getConnection();  SQLCloseable finish = conn::rollback;) {
             StringBuilder sbSQL = new StringBuilder();
-            sbSQL.append("SELECT COUNT(IDUNIDAD_MEDIDA) AS COUNT FROM ");
-            sbSQL.append("`unidad_medida` WHERE ");
-            sbSQL.append("IDUNIDAD_MEDIDA = ? ");
+            sbSQL.append("SELECT COUNT(IDSERIE) AS COUNT FROM ");
+            sbSQL.append("`serie` WHERE ");
+            sbSQL.append("IDSERIE = ? ");
             pst = conn.prepareStatement(sbSQL.toString());
             pst.setLong(1, id);
             LOG.info(pst.toString());
             rs = pst.executeQuery();
             while (rs.next()) {
-                unidadMedida.setIdunidad_medida(rs.getLong("IDUNIDAD_MEDIDA"));
-                unidadMedida.setNombre(rs.getString("NOMBRE"));
+                serie.setIdserie(rs.getLong("IDSERIE"));
+              
             }
             rs.close();
             pst.close();
         } catch (SQLException ex) {
             throw ex;
         }
-        return unidadMedida;
+        return serie;
     }
 
 }
-

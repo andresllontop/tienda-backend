@@ -27,55 +27,14 @@ public class ParametersDefault {
         parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
         return parameters;
     }
-
-    public static HashMap<String, Object> getParametersDefaultUsuario() {
+    public static HashMap<String, Object> getParametersDefaultTipoDocumento() {
         HashMap<String, Object> parameters = new HashMap<>();
         parameters.put("FILTER", "");
-        parameters.put("SQL_ORDERS", " ORDER BY LOGIN ASC ");
+        parameters.put("SQL_ORDERS", " ORDER BY TIPO_DOCUMENTO ASC ");
         parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
         return parameters;
     }
 
-    public static HashMap<String, Object> getParametersDefaultPersonal() {
-        HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("DNI", "");
-        parameters.put("ESTADO", -1);
-        parameters.put("SQL_ORDERS", " ORDER BY NOMBRE ASC ");
-        parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
-        return parameters;
-    }
-
-    public static HashMap<String, Object> getParametersDefaultComida() {
-        HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("FILTER", "");
-        parameters.put("SQL_ORDERS", " ORDER BY DESCRIPCION ASC ");
-        parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
-        return parameters;
-    }
-
-    public static HashMap<String, Object> getParametersDefaultMenuSemanal() {
-        HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("FILTER_FECHAI", "");
-        parameters.put("FILTER_FECHAF", "");
-        parameters.put("SQL_ORDERS", " ORDER BY FECHAI ASC ");
-        parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
-        return parameters;
-    }
-
-    public static HashMap<String, Object> getParametersDefaultMenuDetalle() {
-        HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("FILTER", null);
-        parameters.put("SQL_ORDERS", " ORDER BY INDICE ASC ");
-        parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
-        return parameters;
-    }
     
-    public static HashMap<String, Object> getParametersDefaultCA() {
-        HashMap<String, Object> parameters = new HashMap<>();
-        parameters.put("FILTER", "");
-        parameters.put("SQL_ORDERS", " ORDER BY NOMBRE DESC ");
-        parameters.put("SQL_PAGINATION", " LIMIT 10 OFFSET 0");
-        return parameters;
-    }
 
 }

@@ -5,12 +5,22 @@
  */
 package com.codedoblea.tienda.dao;
 
-import com.codedoblea.tienda.model.Entrada;
+import com.codedoblea.tienda.utilities.BeanCrud;
+import com.codedoblea.tienda.utilities.BeanPagination;
+import com.codedoblea.tienda.model.others.BeanEntrada;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  *
  * @author andres
  */
-public interface IEntradaDAO extends CRUD<Entrada>{
-    
+public interface IEntradaDAO {
+    public BeanCrud getForCodigo(String codigo) throws SQLException;
+    public BeanPagination getPagination(HashMap<String, Object> parameters, Connection conn) throws SQLException;
+    public BeanCrud getPagination(HashMap<String, Object> parameters) throws SQLException;
+    public BeanCrud delete(Long id, HashMap<String, Object> parameters) throws SQLException;
+    public BeanCrud updateBeanEntrada(BeanEntrada beanentrada) throws SQLException;
+    public BeanCrud addBeanEntrada(BeanEntrada beanentrada) throws SQLException;
 }

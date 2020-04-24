@@ -12,7 +12,7 @@ package com.codedoblea.tienda.model;
 public class SubCategoria {
     private Long idsubcategoria;
     private String nombre;
-    private Categoria categoria;
+    private Item categoria;
 
     public SubCategoria() {
     }
@@ -42,11 +42,11 @@ public class SubCategoria {
         this.nombre = nombre;
     }
 
-    public Categoria getCategoria() {
+    public Item getItem() {
         return categoria;
     }
 
-    public void setCategoria(Categoria categoria) {
+    public void setItem(Item categoria) {
         this.categoria = categoria;
     }
     

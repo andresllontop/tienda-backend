@@ -5,9 +5,10 @@
  */
 package com.codedoblea.tienda.api;
 
-import com.codedoblea.tienda.dao.ICategoriaDAO;
-import com.codedoblea.tienda.dao.impl.CategoriaDAOImpl;
-import com.codedoblea.tienda.model.Categoria;
+import com.codedoblea.tienda.dao.ISalidaDAO;
+import com.codedoblea.tienda.dao.impl.SalidaDAOImpl;
+import com.codedoblea.tienda.model.Salida;
+import com.codedoblea.tienda.model.others.BeanSalida;
 import com.codedoblea.tienda.security.annotation.Secured;
 import com.codedoblea.tienda.utilities.DataSourceTIENDA;
 import com.codedoblea.tienda.utilities.ParametersDefault;
@@ -33,17 +34,18 @@ import javax.ws.rs.core.Response;
  * @author andres
  */
 @Singleton
-@Path("/categorias")
+@Path("/salidas")
 @Secured
-public class CategoriaAPI {
 
-    private static final Logger LOG = Logger.getLogger(CategoriaAPI.class.getName());
+public class SalidaAPI {
+
+    private static final Logger LOG = Logger.getLogger(SalidaAPI.class.getName());
     private final DataSource pool;
-    private final ICategoriaDAO categoriaDAO;
+    private final ISalidaDAO salidaDAO;
 
-    public CategoriaAPI() {
+    public SalidaAPI() {
         this.pool = DataSourceTIENDA.getPool();
-        this.categoriaDAO = new CategoriaDAOImpl(this.pool);
+        this.salidaDAO = new SalidaDAOImpl(this.pool);
     }
     @Path("/paginate")
     @GET
@@ -57,7 +59,7 @@ public class CategoriaAPI {
         parameters.put("SQL_ORDERS", " ORDER BY NOMBRE ASC ");
         parameters.put("SQL_PAGINATION", " LIMIT " + size + " OFFSET " + (page - 1) * size);
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.getPagination(parameters))
+                .entity(this.salidaDAO.getPagination(parameters))
                 .build();
     }
 
@@ -65,10 +67,10 @@ public class CategoriaAPI {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response add(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response add(BeanSalida beansalida) throws SQLException {
+        LOG.info(beansalida.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.add(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.salidaDAO.addBeanSalida(beansalida))
                 .build();
     }
 
@@ -76,10 +78,10 @@ public class CategoriaAPI {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Categoria categoria) throws SQLException {
-        LOG.info(categoria.toString());
+    public Response update(BeanSalida beansalida) throws SQLException {
+        LOG.info(beansalida.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.update(categoria, ParametersDefault.getParametersDefault()))
+                .entity(this.salidaDAO.updateBeanSalida(beansalida))
                 .build();
     }
 
@@ -90,8 +92,9 @@ public class CategoriaAPI {
     public Response delete(@PathParam("id") Long id) throws SQLException {
         LOG.info(id.toString());
         return Response.status(Response.Status.OK)
-                .entity(this.categoriaDAO.delete(id, ParametersDefault.getParametersDefault()))
+                .entity(this.salidaDAO.delete(id, ParametersDefault.getParametersDefault()))
                 .build();
     }
 
 }
+

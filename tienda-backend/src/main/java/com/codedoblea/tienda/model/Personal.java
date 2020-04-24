@@ -9,103 +9,39 @@ package com.codedoblea.tienda.model;
  *
  * @author andres
  */
-public class Personal {
-    private Long idpersonal;
-    private String nombre;
-    private String apellido;
-    private Short tipo_documento;
-    /*
-    1=DNI
-    2=
-    */
-    private Integer documento;
-    private Integer telefono;
-    private String email;
-    private String direccion;
+public class Personal extends Persona{
+//    private Cargo cargo;
+    private Usuario usuario;
+    private Short estado;
 
     public Personal() {
+         super();
     }
 
-    public Personal(Long idpersonal) {
-        this.idpersonal = idpersonal;
+    public Personal(Usuario usuario, Short estado, Long idpersona, String nombre, 
+            String apellido_mat, String apellido_pat, Short tipo_documento, 
+            Short sexo, Integer documento, Integer telefono, String email,
+            String direccion) {
+        super(idpersona, nombre, apellido_mat, apellido_pat, tipo_documento, 
+                sexo, documento, telefono, email, direccion);
+        this.usuario = usuario;
+        this.estado = estado;
     }
 
-    public Personal(Long idpersonal, String nombre, String apellido, Short tipo_documento, Integer documento, Integer telefono, String email, String direccion) {
-        this.idpersonal = idpersonal;
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.tipo_documento = tipo_documento;
-        this.documento = documento;
-        this.telefono = telefono;
-        this.email = email;
-        this.direccion = direccion;
+      public Usuario getUsuario() {
+        return usuario;
     }
 
-   
-
-    public Long getIdpersonal() {
-        return idpersonal;
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
-    public void setIdpersonal(Long idpersonal) {
-        this.idpersonal = idpersonal;
+    public Short getEstado() {
+        return estado;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public Short getTipo_documento() {
-        return tipo_documento;
-    }
-
-    public void setTipo_documento(Short tipo_documento) {
-        this.tipo_documento = tipo_documento;
-    }
-
-    public Integer getDocumento() {
-        return documento;
-    }
-
-    public void setDocumento(Integer documento) {
-        this.documento = documento;
-    }
-
-    public Integer getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(Integer telefono) {
-        this.telefono = telefono;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getDireccion() {
-        return direccion;
-    }
-
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
+    public void setEstado(Short estado) {
+        this.estado = estado;
     }
     
-            
 }

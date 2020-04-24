@@ -5,12 +5,12 @@
  */
 package com.codedoblea.tienda.dao;
 
-import com.codedoblea.tienda.model.Categoria;
+import com.codedoblea.tienda.model.Serie;
 
 /**
  *
  * @author andres
  */
-public interface ICategoriaDAO extends CRUD<Categoria>{
+public interface ISerieDAO extends CRUD<Serie>{
     
 }
